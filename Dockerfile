@@ -1,5 +1,6 @@
 # Step 1: Use official OpenJDK image
-FROM eclipse-temurin:17-jdk-jammy
+FROM openjdk:17
+
 
 
 # Step 2: Set working directory inside container
