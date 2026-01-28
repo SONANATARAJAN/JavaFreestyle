@@ -2,52 +2,62 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "java-hello"
+        IMAGE_NAME = "yourdockerhubusername/java-hello"
         CONTAINER_NAME = "java-hello-container"
+        DOCKER_BUILDKIT = "1"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                echo "Checking out source code"
                 checkout scm
             }
         }
 
-        stage('Build Java Code') {
+        stage('Build Java') {
             steps {
-                echo "Compiling Java program"
-                sh '''
-                    javac HelloWorld.java
-                '''
+                sh 'javac HelloWorld.java'
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running basic test"
-                sh '''
-                    java HelloWorld | grep "Hello from Java"
-                '''
+                sh 'java HelloWorld | grep "Hello from Java"'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Login') {
             steps {
-                echo "Building Docker image"
-                sh '''
-                    docker build -t $IMAGE_NAME .
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh 'docker push $IMAGE_NAME'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying Docker container"
                 sh '''
                     docker rm -f $CONTAINER_NAME || true
-                    docker run --name $CONTAINER_NAME -d $IMAGE_NAME
+                    docker run -d --name $CONTAINER_NAME $IMAGE_NAME
                 '''
             }
         }
@@ -55,10 +65,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build, Test & Deploy Successful"
+            echo "✅ Docker image built, pushed & deployed successfully"
         }
         failure {
-            echo "❌ Pipeline Failed"
+            echo "❌ Pipeline failed"
         }
     }
 }
