@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "yourdockerhubusername/java-hello"
+        IMAGE_NAME = "sonajerry/java-hello"
         CONTAINER_NAME = "java-hello-container"
     }
 
