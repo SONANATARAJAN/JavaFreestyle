@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = "yourdockerhubusername/java-hello"
         CONTAINER_NAME = "java-hello-container"
-        DOCKER_BUILDKIT = "0"
     }
 
     stages {
